@@ -1,50 +1,50 @@
 ---
-description: Execute the implementation planning workflow using the plan template to generate design artifacts.
+description: Выполнить рабочий процесс планирования реализации, используя шаблон плана для генерации артефактов проектирования.
 handoffs: 
-  - label: Create Tasks
+  - label: Создать задачи
     agent: speckit.tasks
-    prompt: Break the plan into tasks
+    prompt: Разбить план на задачи
     send: true
-  - label: Create Checklist
+  - label: Создать чеклист
     agent: speckit.checklist
-    prompt: Create a checklist for the following domain...
+    prompt: Создать чеклист для следующей области...
 ---
 
-## User Input
+## Ввод пользователя
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+Вы **ДОЛЖНЫ** учитывать ввод пользователя перед продолжением (если он не пустой).
 
-## Outline
+## План
 
-1. **Setup**: Run `.specify/scripts/powershell/setup-plan.ps1 -Json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Настройка**: Запустите `.specify/scripts/powershell/setup-plan.ps1 -Json` из корня репозитория и распарсите JSON для FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. Для одинарных кавычек в аргументах типа "I'm Groot" используйте синтаксис экранирования: например, 'I'\''m Groot' (или двойные кавычки, если возможно: "I'm Groot").
 
-2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+2. **Загрузить контекст**: Прочитайте FEATURE_SPEC и `.specify/memory/constitution.md`. Загрузите шаблон IMPL_PLAN (уже скопирован).
 
-3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
-   - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
-   - Fill Constitution Check section from constitution
-   - Evaluate gates (ERROR if violations unjustified)
-   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
-   - Phase 1: Generate data-model.md, contracts/, quickstart.md
-   - Phase 1: Update agent context by running the agent script
-   - Re-evaluate Constitution Check post-design
+3. **Выполнить рабочий процесс плана**: Следуйте структуре в шаблоне IMPL_PLAN для:
+   - Заполнения Технического контекста (пометить неизвестное как "ТРЕБУЕТ УТОЧНЕНИЯ")
+   - Заполнения раздела Проверки конституции из конституции
+   - Оценки шлюзов (ОШИБКА при необоснованных нарушениях)
+   - Фаза 0: Сгенерировать research.md (разрешить все ТРЕБУЕТ УТОЧНЕНИЯ)
+   - Фаза 1: Сгенерировать data-model.md, contracts/, quickstart.md
+   - Фаза 1: Обновить контекст агента, запустив скрипт агента
+   - Переоценить Проверку конституции после проектирования
 
-4. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+4. **Остановить и отчитаться**: Команда завершается после планирования Фазы 2. Отчет о ветке, пути IMPL_PLAN и сгенерированных артефактах.
 
-## Phases
+## Фазы
 
-### Phase 0: Outline & Research
+### Фаза 0: Структура и исследование
 
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION → research task
-   - For each dependency → best practices task
-   - For each integration → patterns task
+1. **Извлечь неизвестное из Технического контекста** выше:
+   - Для каждого ТРЕБУЕТ УТОЧНЕНИЯ → задача исследования
+   - Для каждой зависимости → задача лучших практик
+   - Для каждой интеграции → задача паттернов
 
-2. **Generate and dispatch research agents**:
+2. **Сгенерировать и отправить агентов исследования**:
 
    ```text
    For each unknown in Technical Context:
@@ -53,37 +53,37 @@ You **MUST** consider the user input before proceeding (if not empty).
      Task: "Find best practices for {tech} in {domain}"
    ```
 
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
+3. **Консолидировать находки** в `research.md` используя формат:
+   - Решение: [что было выбрано]
+   - Обоснование: [почему выбрано]
+   - Рассмотренные альтернативы: [что еще оценивалось]
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+**Вывод**: research.md со всеми разрешенными ТРЕБУЕТ УТОЧНЕНИЯ
 
-### Phase 1: Design & Contracts
+### Фаза 1: Проектирование и контракты
 
-**Prerequisites:** `research.md` complete
+**Предварительные условия:** `research.md` завершен
 
-1. **Extract entities from feature spec** → `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
+1. **Извлечь сущности из спецификации функции** → `data-model.md`:
+   - Имя сущности, поля, связи
+   - Правила валидации из требований
+   - Переходы состояний, если применимо
 
-2. **Generate API contracts** from functional requirements:
-   - For each user action → endpoint
-   - Use standard REST/GraphQL patterns
-   - Output OpenAPI/GraphQL schema to `/contracts/`
+2. **Сгенерировать контракты API** из функциональных требований:
+   - Для каждого действия пользователя → конечная точка
+   - Использовать стандартные паттерны REST/GraphQL
+   - Вывести схему OpenAPI/GraphQL в `/contracts/`
 
-3. **Agent context update**:
-   - Run `.specify/scripts/powershell/update-agent-context.ps1 -AgentType cursor-agent`
-   - These scripts detect which AI agent is in use
-   - Update the appropriate agent-specific context file
-   - Add only new technology from current plan
-   - Preserve manual additions between markers
+3. **Обновление контекста агента**:
+   - Запустить `.specify/scripts/powershell/update-agent-context.ps1 -AgentType cursor-agent`
+   - Эти скрипты определяют, какой AI-агент используется
+   - Обновить соответствующий файл контекста агента
+   - Добавить только новую технологию из текущего плана
+   - Сохранить ручные добавления между маркерами
 
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+**Вывод**: data-model.md, /contracts/*, quickstart.md, файл агента
 
-## Key rules
+## Ключевые правила
 
-- Use absolute paths
-- ERROR on gate failures or unresolved clarifications
+- Использовать абсолютные пути
+- ОШИБКА при отказах шлюзов или неразрешенных уточнениях

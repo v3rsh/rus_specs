@@ -1,184 +1,184 @@
 ---
-description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
+description: Выполнить неразрушающий анализ согласованности и качества между артефактами spec.md, plan.md и tasks.md после генерации задач.
 ---
 
-## User Input
+## Ввод пользователя
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+Вы **ДОЛЖНЫ** учитывать ввод пользователя перед продолжением (если он не пустой).
 
-## Goal
+## Цель
 
-Identify inconsistencies, duplications, ambiguities, and underspecified items across the three core artifacts (`spec.md`, `plan.md`, `tasks.md`) before implementation. This command MUST run only after `/speckit.tasks` has successfully produced a complete `tasks.md`.
+Выявить несогласованности, дублирования, неоднозначности и недостаточно специфицированные элементы в трех основных артефактах (`spec.md`, `plan.md`, `tasks.md`) перед реализацией. Эта команда ДОЛЖНА запускаться только после того, как `/speckit.tasks` успешно создал полный `tasks.md`.
 
-## Operating Constraints
+## Ограничения работы
 
-**STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
+**СТРОГО ТОЛЬКО ЧТЕНИЕ**: **НЕ** изменяйте файлы. Выведите структурированный отчет об анализе. Предложите опциональный план исправления (пользователь должен явно одобрить перед любыми последующими командами редактирования, которые будут вызваны вручную).
 
-**Constitution Authority**: The project constitution (`.specify/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
+**Авторитет конституции**: Конституция проекта (`.specify/memory/constitution.md`) **не подлежит обсуждению** в рамках этого анализа. Конфликты с конституцией автоматически КРИТИЧНЫ и требуют корректировки spec, plan или tasks — не разбавления, переинтерпретации или тихого игнорирования принципа. Если сам принцип нуждается в изменении, это должно произойти в отдельном, явном обновлении конституции вне `/speckit.analyze`.
 
-## Execution Steps
+## Шаги выполнения
 
-### 1. Initialize Analysis Context
+### 1. Инициализация контекста анализа
 
-Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS. Derive absolute paths:
+Запустите `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` один раз из корня репозитория и распарсите JSON для FEATURE_DIR и AVAILABLE_DOCS. Выведите абсолютные пути:
 
 - SPEC = FEATURE_DIR/spec.md
 - PLAN = FEATURE_DIR/plan.md
 - TASKS = FEATURE_DIR/tasks.md
 
-Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
-For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+Прервать с сообщением об ошибке, если какой-либо обязательный файл отсутствует (инструкция пользователю запустить отсутствующую команду-предварительное условие).
+Для одинарных кавычек в аргументах типа "I'm Groot" используйте синтаксис экранирования: например, 'I'\''m Groot' (или двойные кавычки, если возможно: "I'm Groot").
 
-### 2. Load Artifacts (Progressive Disclosure)
+### 2. Загрузка артефактов (Прогрессивное раскрытие)
 
-Load only the minimal necessary context from each artifact:
+Загружайте только минимально необходимый контекст из каждого артефакта:
 
-**From spec.md:**
+**Из spec.md:**
 
-- Overview/Context
-- Functional Requirements
-- Non-Functional Requirements
-- User Stories
-- Edge Cases (if present)
+- Обзор/Контекст
+- Функциональные требования
+- Нефункциональные требования
+- Пользовательские истории
+- Граничные случаи (если присутствуют)
 
-**From plan.md:**
+**Из plan.md:**
 
-- Architecture/stack choices
-- Data Model references
-- Phases
-- Technical constraints
+- Выборы архитектуры/стека
+- Ссылки на модель данных
+- Фазы
+- Технические ограничения
 
-**From tasks.md:**
+**Из tasks.md:**
 
-- Task IDs
-- Descriptions
-- Phase grouping
-- Parallel markers [P]
-- Referenced file paths
+- ID задач
+- Описания
+- Группировка по фазам
+- Маркеры параллельности [P]
+- Ссылки на пути файлов
 
-**From constitution:**
+**Из конституции:**
 
-- Load `.specify/memory/constitution.md` for principle validation
+- Загрузить `.specify/memory/constitution.md` для валидации принципов
 
-### 3. Build Semantic Models
+### 3. Построение семантических моделей
 
-Create internal representations (do not include raw artifacts in output):
+Создайте внутренние представления (не включайте сырые артефакты в вывод):
 
-- **Requirements inventory**: Each functional + non-functional requirement with a stable key (derive slug based on imperative phrase; e.g., "User can upload file" → `user-can-upload-file`)
-- **User story/action inventory**: Discrete user actions with acceptance criteria
-- **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
-- **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
+- **Инвентарь требований**: Каждое функциональное + нефункциональное требование со стабильным ключом (вывести slug на основе императивной фразы; например, "User can upload file" → `user-can-upload-file`)
+- **Инвентарь пользовательских историй/действий**: Дискретные действия пользователя с критериями приемки
+- **Маппинг покрытия задач**: Сопоставьте каждую задачу с одним или несколькими требованиями или историями (вывод по ключевым словам / явным паттернам ссылок, таким как ID или ключевые фразы)
+- **Набор правил конституции**: Извлеките имена принципов и нормативные утверждения MUST/SHOULD
 
-### 4. Detection Passes (Token-Efficient Analysis)
+### 4. Проходы обнаружения (Анализ с эффективным использованием токенов)
 
-Focus on high-signal findings. Limit to 50 findings total; aggregate remainder in overflow summary.
+Сфокусируйтесь на находках с высоким сигналом. Ограничьтесь 50 находками всего; агрегируйте остаток в сводке переполнения.
 
-#### A. Duplication Detection
+#### A. Обнаружение дублирования
 
-- Identify near-duplicate requirements
-- Mark lower-quality phrasing for consolidation
+- Выявить почти дублирующиеся требования
+- Пометить формулировки более низкого качества для консолидации
 
-#### B. Ambiguity Detection
+#### B. Обнаружение неоднозначности
 
-- Flag vague adjectives (fast, scalable, secure, intuitive, robust) lacking measurable criteria
-- Flag unresolved placeholders (TODO, TKTK, ???, `<placeholder>`, etc.)
+- Пометить расплывчатые прилагательные (fast, scalable, secure, intuitive, robust), не имеющие измеримых критериев
+- Пометить неразрешенные плейсхолдеры (TODO, TKTK, ???, `<placeholder>` и т.д.)
 
-#### C. Underspecification
+#### C. Недостаточная спецификация
 
-- Requirements with verbs but missing object or measurable outcome
-- User stories missing acceptance criteria alignment
-- Tasks referencing files or components not defined in spec/plan
+- Требования с глаголами, но без объекта или измеримого результата
+- Пользовательские истории без соответствия критериям приемки
+- Задачи, ссылающиеся на файлы или компоненты, не определенные в spec/plan
 
-#### D. Constitution Alignment
+#### D. Выравнивание конституции
 
-- Any requirement or plan element conflicting with a MUST principle
-- Missing mandated sections or quality gates from constitution
+- Любое требование или элемент плана, конфликтующий с принципом MUST
+- Отсутствующие обязательные разделы или шлюзы качества из конституции
 
-#### E. Coverage Gaps
+#### E. Пробелы покрытия
 
-- Requirements with zero associated tasks
-- Tasks with no mapped requirement/story
-- Non-functional requirements not reflected in tasks (e.g., performance, security)
+- Требования без связанных задач
+- Задачи без сопоставленного требования/истории
+- Нефункциональные требования, не отраженные в задачах (например, производительность, безопасность)
 
-#### F. Inconsistency
+#### F. Несогласованность
 
-- Terminology drift (same concept named differently across files)
-- Data entities referenced in plan but absent in spec (or vice versa)
-- Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
-- Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
+- Дрейф терминологии (то же понятие названо по-разному в разных файлах)
+- Сущности данных, упомянутые в плане, но отсутствующие в спецификации (или наоборот)
+- Противоречия порядка задач (например, задачи интеграции перед базовыми задачами настройки без примечания о зависимости)
+- Конфликтующие требования (например, одно требует Next.js, а другое указывает Vue)
 
-### 5. Severity Assignment
+### 5. Назначение серьезности
 
-Use this heuristic to prioritize findings:
+Используйте эту эвристику для приоритизации находок:
 
-- **CRITICAL**: Violates constitution MUST, missing core spec artifact, or requirement with zero coverage that blocks baseline functionality
-- **HIGH**: Duplicate or conflicting requirement, ambiguous security/performance attribute, untestable acceptance criterion
-- **MEDIUM**: Terminology drift, missing non-functional task coverage, underspecified edge case
-- **LOW**: Style/wording improvements, minor redundancy not affecting execution order
+- **КРИТИЧНО**: Нарушает MUST конституции, отсутствует основной артефакт спецификации или требование с нулевым покрытием, блокирующее базовую функциональность
+- **ВЫСОКАЯ**: Дублирующееся или конфликтующее требование, неоднозначный атрибут безопасности/производительности, непроверяемый критерий приемки
+- **СРЕДНЯЯ**: Дрейф терминологии, отсутствующее покрытие нефункциональных задач, недостаточно специфицированный граничный случай
+- **НИЗКАЯ**: Улучшения стиля/формулировки, незначительная избыточность, не влияющая на порядок выполнения
 
-### 6. Produce Compact Analysis Report
+### 6. Создать компактный отчет об анализе
 
-Output a Markdown report (no file writes) with the following structure:
+Выведите отчет Markdown (без записи файлов) со следующей структурой:
 
-## Specification Analysis Report
+## Отчет об анализе спецификации
 
-| ID | Category | Severity | Location(s) | Summary | Recommendation |
-|----|----------|----------|-------------|---------|----------------|
-| A1 | Duplication | HIGH | spec.md:L120-134 | Two similar requirements ... | Merge phrasing; keep clearer version |
+| ID | Категория | Серьезность | Местоположение(я) | Сводка | Рекомендация |
+|----|-----------|-------------|-------------------|--------|--------------|
+| A1 | Дублирование | ВЫСОКАЯ | spec.md:L120-134 | Два похожих требования ... | Объединить формулировки; сохранить более ясную версию |
 
-(Add one row per finding; generate stable IDs prefixed by category initial.)
+(Добавьте одну строку на находку; генерируйте стабильные ID с префиксом начальной буквы категории.)
 
-**Coverage Summary Table:**
+**Таблица сводки покрытия:**
 
-| Requirement Key | Has Task? | Task IDs | Notes |
-|-----------------|-----------|----------|-------|
+| Ключ требования | Есть задача? | ID задач | Примечания |
+|-----------------|-------------|----------|------------|
 
-**Constitution Alignment Issues:** (if any)
+**Проблемы выравнивания конституции:** (если есть)
 
-**Unmapped Tasks:** (if any)
+**Немаппированные задачи:** (если есть)
 
-**Metrics:**
+**Метрики:**
 
-- Total Requirements
-- Total Tasks
-- Coverage % (requirements with >=1 task)
-- Ambiguity Count
-- Duplication Count
-- Critical Issues Count
+- Всего требований
+- Всего задач
+- Процент покрытия (требования с >=1 задачей)
+- Количество неоднозначностей
+- Количество дублирований
+- Количество критических проблем
 
-### 7. Provide Next Actions
+### 7. Предоставить следующие действия
 
-At end of report, output a concise Next Actions block:
+В конце отчета выведите краткий блок Следующих действий:
 
-- If CRITICAL issues exist: Recommend resolving before `/speckit.implement`
-- If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run /speckit.specify with refinement", "Run /speckit.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
+- Если существуют КРИТИЧЕСКИЕ проблемы: Рекомендовать разрешить перед `/speckit.implement`
+- Если только НИЗКАЯ/СРЕДНЯЯ: Пользователь может продолжить, но предоставьте предложения по улучшению
+- Предоставьте явные предложения команд: например, "Запустить /speckit.specify с уточнением", "Запустить /speckit.plan для корректировки архитектуры", "Вручную отредактировать tasks.md для добавления покрытия 'performance-metrics'"
 
-### 8. Offer Remediation
+### 8. Предложить исправление
 
-Ask the user: "Would you like me to suggest concrete remediation edits for the top N issues?" (Do NOT apply them automatically.)
+Спросите пользователя: "Хотите ли вы, чтобы я предложил конкретные правки исправления для топ N проблем?" (НЕ применяйте их автоматически.)
 
-## Operating Principles
+## Принципы работы
 
-### Context Efficiency
+### Эффективность контекста
 
-- **Minimal high-signal tokens**: Focus on actionable findings, not exhaustive documentation
-- **Progressive disclosure**: Load artifacts incrementally; don't dump all content into analysis
-- **Token-efficient output**: Limit findings table to 50 rows; summarize overflow
-- **Deterministic results**: Rerunning without changes should produce consistent IDs and counts
+- **Минимальные токены с высоким сигналом**: Фокус на действенных находках, а не исчерпывающей документации
+- **Прогрессивное раскрытие**: Загружайте артефакты инкрементально; не сбрасывайте все содержимое в анализ
+- **Эффективный по токенам вывод**: Ограничьте таблицу находок 50 строками; суммируйте переполнение
+- **Детерминированные результаты**: Повторный запуск без изменений должен давать согласованные ID и подсчеты
 
-### Analysis Guidelines
+### Руководящие принципы анализа
 
-- **NEVER modify files** (this is read-only analysis)
-- **NEVER hallucinate missing sections** (if absent, report them accurately)
-- **Prioritize constitution violations** (these are always CRITICAL)
-- **Use examples over exhaustive rules** (cite specific instances, not generic patterns)
-- **Report zero issues gracefully** (emit success report with coverage statistics)
+- **НИКОГДА не изменяйте файлы** (это анализ только для чтения)
+- **НИКОГДА не галлюцинируйте отсутствующие разделы** (если отсутствуют, сообщайте о них точно)
+- **Приоритизируйте нарушения конституции** (они всегда КРИТИЧНЫ)
+- **Используйте примеры вместо исчерпывающих правил** (цитируйте конкретные случаи, а не общие паттерны)
+- **Элегантно сообщайте о нуле проблем** (выдайте отчет об успехе со статистикой покрытия)
 
-## Context
+## Контекст
 
 $ARGUMENTS

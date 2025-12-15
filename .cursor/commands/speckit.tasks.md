@@ -1,137 +1,137 @@
 ---
-description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+description: Сгенерировать действенный, упорядоченный по зависимостям tasks.md для функции на основе доступных артефактов проектирования.
 handoffs: 
-  - label: Analyze For Consistency
+  - label: Проанализировать на согласованность
     agent: speckit.analyze
-    prompt: Run a project analysis for consistency
+    prompt: Запустить анализ проекта на согласованность
     send: true
-  - label: Implement Project
+  - label: Реализовать проект
     agent: speckit.implement
-    prompt: Start the implementation in phases
+    prompt: Начать реализацию по фазам
     send: true
 ---
 
-## User Input
+## Ввод пользователя
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+Вы **ДОЛЖНЫ** учитывать ввод пользователя перед продолжением (если он не пустой).
 
-## Outline
+## План
 
-1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Настройка**: Запустите `.specify/scripts/powershell/check-prerequisites.ps1 -Json` из корня репозитория и распарсите список FEATURE_DIR и AVAILABLE_DOCS. Все пути должны быть абсолютными. Для одинарных кавычек в аргументах типа "I'm Groot" используйте синтаксис экранирования: например, 'I'\''m Groot' (или двойные кавычки, если возможно: "I'm Groot").
 
-2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
-   - **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions), quickstart.md (test scenarios)
-   - Note: Not all projects have all documents. Generate tasks based on what's available.
+2. **Загрузите документы проектирования**: Прочитайте из FEATURE_DIR:
+   - **Обязательно**: plan.md (технологический стек, библиотеки, структура), spec.md (пользовательские истории с приоритетами)
+   - **Опционально**: data-model.md (сущности), contracts/ (конечные точки API), research.md (решения), quickstart.md (тестовые сценарии)
+   - Примечание: Не все проекты имеют все документы. Генерируйте задачи на основе того, что доступно.
 
-3. **Execute task generation workflow**:
-   - Load plan.md and extract tech stack, libraries, project structure
-   - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
-   - If data-model.md exists: Extract entities and map to user stories
-   - If contracts/ exists: Map endpoints to user stories
-   - If research.md exists: Extract decisions for setup tasks
-   - Generate tasks organized by user story (see Task Generation Rules below)
-   - Generate dependency graph showing user story completion order
-   - Create parallel execution examples per user story
-   - Validate task completeness (each user story has all needed tasks, independently testable)
+3. **Выполните рабочий процесс генерации задач**:
+   - Загрузите plan.md и извлеките технологический стек, библиотеки, структуру проекта
+   - Загрузите spec.md и извлеките пользовательские истории с их приоритетами (P1, P2, P3 и т.д.)
+   - Если существует data-model.md: Извлеките сущности и сопоставьте с пользовательскими историями
+   - Если существует contracts/: Сопоставьте конечные точки с пользовательскими историями
+   - Если существует research.md: Извлеките решения для задач настройки
+   - Сгенерируйте задачи, организованные по пользовательским историям (см. Правила генерации задач ниже)
+   - Сгенерируйте граф зависимостей, показывающий порядок завершения пользовательских историй
+   - Создайте примеры параллельного выполнения для каждой пользовательской истории
+   - Валидируйте полноту задач (каждая пользовательская история имеет все необходимые задачи, независимо проверяема)
 
-4. **Generate tasks.md**: Use `.specify/templates/tasks-template.md` as structure, fill with:
-   - Correct feature name from plan.md
-   - Phase 1: Setup tasks (project initialization)
-   - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
-   - Phase 3+: One phase per user story (in priority order from spec.md)
-   - Each phase includes: story goal, independent test criteria, tests (if requested), implementation tasks
-   - Final Phase: Polish & cross-cutting concerns
-   - All tasks must follow the strict checklist format (see Task Generation Rules below)
-   - Clear file paths for each task
-   - Dependencies section showing story completion order
-   - Parallel execution examples per story
-   - Implementation strategy section (MVP first, incremental delivery)
+4. **Сгенерируйте tasks.md**: Используйте `.specify/templates/tasks-template.md` как структуру, заполните:
+   - Правильное имя функции из plan.md
+   - Фаза 1: Задачи настройки (инициализация проекта)
+   - Фаза 2: Базовые задачи (блокирующие предварительные условия для всех пользовательских историй)
+   - Фаза 3+: Одна фаза на пользовательскую историю (в порядке приоритета из spec.md)
+   - Каждая фаза включает: цель истории, критерии независимого тестирования, тесты (если запрошены), задачи реализации
+   - Финальная фаза: Полировка и сквозные проблемы
+   - Все задачи должны следовать строгому формату чеклиста (см. Правила генерации задач ниже)
+   - Четкие пути файлов для каждой задачи
+   - Раздел зависимостей, показывающий порядок завершения историй
+   - Примеры параллельного выполнения для каждой истории
+   - Раздел стратегии реализации (MVP сначала, инкрементальная доставка)
 
-5. **Report**: Output path to generated tasks.md and summary:
-   - Total task count
-   - Task count per user story
-   - Parallel opportunities identified
-   - Independent test criteria for each story
-   - Suggested MVP scope (typically just User Story 1)
-   - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
+5. **Отчет**: Выведите путь к сгенерированному tasks.md и сводку:
+   - Общее количество задач
+   - Количество задач на пользовательскую историю
+   - Выявленные возможности параллелизма
+   - Критерии независимого тестирования для каждой истории
+   - Предложенная область MVP (обычно только Пользовательская история 1)
+   - Валидация формата: Подтвердите, что ВСЕ задачи следуют формату чеклиста (чекбокс, ID, метки, пути файлов)
 
-Context for task generation: $ARGUMENTS
+Контекст для генерации задач: $ARGUMENTS
 
-The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
+tasks.md должен быть немедленно выполнимым — каждая задача должна быть достаточно конкретной, чтобы LLM мог завершить ее без дополнительного контекста.
 
-## Task Generation Rules
+## Правила генерации задач
 
-**CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
+**КРИТИЧНО**: Задачи ДОЛЖНЫ быть организованы по пользовательским историям, чтобы обеспечить независимую реализацию и тестирование.
 
-**Tests are OPTIONAL**: Only generate test tasks if explicitly requested in the feature specification or if user requests TDD approach.
+**Тесты ОПЦИОНАЛЬНЫ**: Генерируйте задачи тестов только если явно запрошено в спецификации функции или если пользователь запрашивает подход TDD.
 
-### Checklist Format (REQUIRED)
+### Формат чеклиста (ОБЯЗАТЕЛЬНО)
 
-Every task MUST strictly follow this format:
+Каждая задача ДОЛЖНА строго следовать этому формату:
 
 ```text
-- [ ] [TaskID] [P?] [Story?] Description with file path
+- [ ] [IDЗадачи] [П?] [История?] Описание с путем к файлу
 ```
 
-**Format Components**:
+**Компоненты формата**:
 
-1. **Checkbox**: ALWAYS start with `- [ ]` (markdown checkbox)
-2. **Task ID**: Sequential number (T001, T002, T003...) in execution order
-3. **[P] marker**: Include ONLY if task is parallelizable (different files, no dependencies on incomplete tasks)
-4. **[Story] label**: REQUIRED for user story phase tasks only
-   - Format: [US1], [US2], [US3], etc. (maps to user stories from spec.md)
-   - Setup phase: NO story label
-   - Foundational phase: NO story label  
-   - User Story phases: MUST have story label
-   - Polish phase: NO story label
-5. **Description**: Clear action with exact file path
+1. **Чекбокс**: ВСЕГДА начинайте с `- [ ]` (чекбокс markdown)
+2. **ID задачи**: Последовательный номер (T001, T002, T003...) в порядке выполнения
+3. **Маркер [P]**: Включайте ТОЛЬКО если задача параллелизуема (разные файлы, нет зависимостей от незавершенных задач)
+4. **Метка [История]**: ОБЯЗАТЕЛЬНО только для задач фаз пользовательских историй
+   - Формат: [ИС1], [ИС2], [ИС3] и т.д. (сопоставляется с пользовательскими историями из spec.md)
+   - Фаза настройки: БЕЗ метки истории
+   - Базовая фаза: БЕЗ метки истории
+   - Фазы пользовательских историй: ДОЛЖНЫ иметь метку истории
+   - Фаза полировки: БЕЗ метки истории
+5. **Описание**: Четкое действие с точным путем файла
 
-**Examples**:
+**Примеры**:
 
-- ✅ CORRECT: `- [ ] T001 Create project structure per implementation plan`
-- ✅ CORRECT: `- [ ] T005 [P] Implement authentication middleware in src/middleware/auth.py`
-- ✅ CORRECT: `- [ ] T012 [P] [US1] Create User model in src/models/user.py`
-- ✅ CORRECT: `- [ ] T014 [US1] Implement UserService in src/services/user_service.py`
-- ❌ WRONG: `- [ ] Create User model` (missing ID and Story label)
-- ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
-- ❌ WRONG: `- [ ] [US1] Create User model` (missing Task ID)
-- ❌ WRONG: `- [ ] T001 [US1] Create model` (missing file path)
+- ✅ ПРАВИЛЬНО: `- [ ] T001 Создать структуру проекта согласно плану реализации`
+- ✅ ПРАВИЛЬНО: `- [ ] T005 [P] Реализовать middleware аутентификации в src/middleware/auth.py`
+- ✅ ПРАВИЛЬНО: `- [ ] T012 [П] [ИС1] Создать модель Пользователь в src/models/user.py`
+- ✅ ПРАВИЛЬНО: `- [ ] T014 [ИС1] Реализовать СервисПользователя в src/services/user_service.py`
+- ❌ НЕПРАВИЛЬНО: `- [ ] Создать модель Пользователь` (отсутствует ID и метка истории)
+- ❌ НЕПРАВИЛЬНО: `T001 [ИС1] Создать модель` (отсутствует чекбокс)
+- ❌ НЕПРАВИЛЬНО: `- [ ] [ИС1] Создать модель Пользователь` (отсутствует ID задачи)
+- ❌ НЕПРАВИЛЬНО: `- [ ] T001 [ИС1] Создать модель` (отсутствует путь файла)
 
-### Task Organization
+### Организация задач
 
-1. **From User Stories (spec.md)** - PRIMARY ORGANIZATION:
-   - Each user story (P1, P2, P3...) gets its own phase
-   - Map all related components to their story:
-     - Models needed for that story
-     - Services needed for that story
-     - Endpoints/UI needed for that story
-     - If tests requested: Tests specific to that story
-   - Mark story dependencies (most stories should be independent)
+1. **Из пользовательских историй (spec.md)** — ПЕРВИЧНАЯ ОРГАНИЗАЦИЯ:
+   - Каждая пользовательская история (P1, P2, P3...) получает свою фазу
+   - Сопоставьте все связанные компоненты с их историей:
+     - Модели, необходимые для этой истории
+     - Сервисы, необходимые для этой истории
+     - Конечные точки/UI, необходимые для этой истории
+     - Если запрошены тесты: Тесты, специфичные для этой истории
+   - Отметьте зависимости историй (большинство историй должны быть независимыми)
 
-2. **From Contracts**:
-   - Map each contract/endpoint → to the user story it serves
-   - If tests requested: Each contract → contract test task [P] before implementation in that story's phase
+2. **Из контрактов**:
+   - Сопоставьте каждый контракт/конечную точку → с пользовательской историей, которой она служит
+   - Если запрошены тесты: Каждый контракт → задача теста контракта [P] перед реализацией в фазе этой истории
 
-3. **From Data Model**:
-   - Map each entity to the user story(ies) that need it
-   - If entity serves multiple stories: Put in earliest story or Setup phase
-   - Relationships → service layer tasks in appropriate story phase
+3. **Из модели данных**:
+   - Сопоставьте каждую сущность с пользовательской историей(ями), которым она нужна
+   - Если сущность служит нескольким историям: Поместите в самую раннюю историю или фазу настройки
+   - Связи → задачи слоя сервисов в соответствующей фазе истории
 
-4. **From Setup/Infrastructure**:
-   - Shared infrastructure → Setup phase (Phase 1)
-   - Foundational/blocking tasks → Foundational phase (Phase 2)
-   - Story-specific setup → within that story's phase
+4. **Из настройки/инфраструктуры**:
+   - Общая инфраструктура → Фаза настройки (Фаза 1)
+   - Базовые/блокирующие задачи → Базовая фаза (Фаза 2)
+   - Настройка, специфичная для истории → в фазе этой истории
 
-### Phase Structure
+### Структура фаз
 
-- **Phase 1**: Setup (project initialization)
-- **Phase 2**: Foundational (blocking prerequisites - MUST complete before user stories)
-- **Phase 3+**: User Stories in priority order (P1, P2, P3...)
-  - Within each story: Tests (if requested) → Models → Services → Endpoints → Integration
-  - Each phase should be a complete, independently testable increment
-- **Final Phase**: Polish & Cross-Cutting Concerns
+- **Фаза 1**: Настройка (инициализация проекта)
+- **Фаза 2**: Базовая (блокирующие предварительные условия — ДОЛЖНЫ быть завершены перед пользовательскими историями)
+- **Фаза 3+**: Пользовательские истории в порядке приоритета (P1, P2, P3...)
+  - Внутри каждой истории: Тесты (если запрошены) → Модели → Сервисы → Конечные точки → Интеграция
+  - Каждая фаза должна быть полным, независимо проверяемым инкрементом
+- **Финальная фаза**: Полировка и сквозные проблемы

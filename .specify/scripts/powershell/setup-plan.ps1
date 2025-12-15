@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# Setup implementation plan for a feature
+# Настроить план реализации для функции
 
 [CmdletBinding()]
 param(
@@ -9,40 +9,40 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Show help if requested
+# Показать справку, если запрошено
 if ($Help) {
-    Write-Output "Usage: ./setup-plan.ps1 [-Json] [-Help]"
-    Write-Output "  -Json     Output results in JSON format"
-    Write-Output "  -Help     Show this help message"
+    Write-Output "Использование: ./setup-plan.ps1 [-Json] [-Help]"
+    Write-Output "  -Json     Вывести результаты в формате JSON"
+    Write-Output "  -Help     Показать это сообщение справки"
     exit 0
 }
 
-# Load common functions
+# Загрузить общие функции
 . "$PSScriptRoot/common.ps1"
 
-# Get all paths and variables from common functions
+# Получить все пути и переменные из общих функций
 $paths = Get-FeaturePathsEnv
 
-# Check if we're on a proper feature branch (only for git repos)
+# Проверить, находимся ли мы на правильной ветке функции (только для git репозиториев)
 if (-not (Test-FeatureBranch -Branch $paths.CURRENT_BRANCH -HasGit $paths.HAS_GIT)) { 
     exit 1 
 }
 
-# Ensure the feature directory exists
+# Убедиться, что директория функции существует
 New-Item -ItemType Directory -Path $paths.FEATURE_DIR -Force | Out-Null
 
-# Copy plan template if it exists, otherwise note it or create empty file
+# Скопировать шаблон плана, если он существует, иначе отметить его или создать пустой файл
 $template = Join-Path $paths.REPO_ROOT '.specify/templates/plan-template.md'
 if (Test-Path $template) { 
     Copy-Item $template $paths.IMPL_PLAN -Force
-    Write-Output "Copied plan template to $($paths.IMPL_PLAN)"
+    Write-Output "Шаблон плана скопирован в $($paths.IMPL_PLAN)"
 } else {
-    Write-Warning "Plan template not found at $template"
-    # Create a basic plan file if template doesn't exist
+    Write-Warning "Шаблон плана не найден по пути $template"
+    # Создать базовый файл плана, если шаблон не существует
     New-Item -ItemType File -Path $paths.IMPL_PLAN -Force | Out-Null
 }
 
-# Output results
+# Вывести результаты
 if ($Json) {
     $result = [PSCustomObject]@{ 
         FEATURE_SPEC = $paths.FEATURE_SPEC

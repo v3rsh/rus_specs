@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# Create a new feature
+# Создать новую функцию
 [CmdletBinding()]
 param(
     [switch]$Json,
@@ -11,33 +11,33 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# Show help if requested
+# Показать справку, если запрошено
 if ($Help) {
-    Write-Host "Usage: ./create-new-feature.ps1 [-Json] [-ShortName <name>] [-Number N] <feature description>"
+    Write-Host "Использование: ./create-new-feature.ps1 [-Json] [-ShortName <имя>] [-Number N] <описание функции>"
     Write-Host ""
-    Write-Host "Options:"
-    Write-Host "  -Json               Output in JSON format"
-    Write-Host "  -ShortName <name>   Provide a custom short name (2-4 words) for the branch"
-    Write-Host "  -Number N           Specify branch number manually (overrides auto-detection)"
-    Write-Host "  -Help               Show this help message"
+    Write-Host "Опции:"
+    Write-Host "  -Json               Вывод в формате JSON"
+    Write-Host "  -ShortName <имя>    Предоставить пользовательское короткое имя (2-4 слова) для ветки"
+    Write-Host "  -Number N           Указать номер ветки вручную (переопределяет автоопределение)"
+    Write-Host "  -Help               Показать это сообщение справки"
     Write-Host ""
-    Write-Host "Examples:"
-    Write-Host "  ./create-new-feature.ps1 'Add user authentication system' -ShortName 'user-auth'"
-    Write-Host "  ./create-new-feature.ps1 'Implement OAuth2 integration for API'"
+    Write-Host "Примеры:"
+    Write-Host "  ./create-new-feature.ps1 'Добавить систему аутентификации пользователей' -ShortName 'аутентификация-пользователей'"
+    Write-Host "  ./create-new-feature.ps1 'Реализовать интеграцию OAuth2 для API' -ShortName 'интеграция-oauth2-api'"
     exit 0
 }
 
-# Check if feature description provided
+# Проверить, предоставлено ли описание функции
 if (-not $FeatureDescription -or $FeatureDescription.Count -eq 0) {
-    Write-Error "Usage: ./create-new-feature.ps1 [-Json] [-ShortName <name>] <feature description>"
+    Write-Error "Использование: ./create-new-feature.ps1 [-Json] [-ShortName <имя>] <описание функции>"
     exit 1
 }
 
 $featureDesc = ($FeatureDescription -join ' ').Trim()
 
-# Resolve repository root. Prefer git information when available, but fall back
-# to searching for repository markers so the workflow still functions in repositories that
-# were initialized with --no-git.
+# Определить корень репозитория. Предпочитать информацию git, когда доступна, но откатываться
+# к поиску маркеров репозитория, чтобы рабочий процесс все еще функционировал в репозиториях, которые
+# были инициализированы с --no-git.
 function Find-RepositoryRoot {
     param(
         [string]$StartDir,
@@ -52,7 +52,7 @@ function Find-RepositoryRoot {
         }
         $parent = Split-Path $current -Parent
         if ($parent -eq $current) {
-            # Reached filesystem root without finding markers
+            # Достигнут корень файловой системы без нахождения маркеров
             return $null
         }
         $current = $parent
@@ -82,10 +82,10 @@ function Get-HighestNumberFromBranches {
         $branches = git branch -a 2>$null
         if ($LASTEXITCODE -eq 0) {
             foreach ($branch in $branches) {
-                # Clean branch name: remove leading markers and remote prefixes
+                # Очистить имя ветки: удалить ведущие маркеры и префиксы удаленных репозиториев
                 $cleanBranch = $branch.Trim() -replace '^\*?\s+', '' -replace '^remotes/[^/]+/', ''
                 
-                # Extract feature number if branch matches pattern ###-*
+                # Извлечь номер функции, если ветка соответствует паттерну ###-*
                 if ($cleanBranch -match '^(\d+)-') {
                     $num = [int]$matches[1]
                     if ($num -gt $highest) { $highest = $num }
@@ -93,7 +93,7 @@ function Get-HighestNumberFromBranches {
             }
         }
     } catch {
-        # If git command fails, return 0
+        # Если команда git не удалась, вернуть 0
         Write-Verbose "Could not check Git branches: $_"
     }
     return $highest
@@ -104,23 +104,23 @@ function Get-NextBranchNumber {
         [string]$SpecsDir
     )
 
-    # Fetch all remotes to get latest branch info (suppress errors if no remotes)
+    # Получить все удаленные репозитории для получения последней информации о ветках (подавить ошибки, если нет удаленных)
     try {
         git fetch --all --prune 2>$null | Out-Null
     } catch {
-        # Ignore fetch errors
+        # Игнорировать ошибки получения
     }
 
-    # Get highest number from ALL branches (not just matching short name)
+    # Получить наибольший номер из ВСЕХ веток (не только соответствующих короткому имени)
     $highestBranch = Get-HighestNumberFromBranches
 
-    # Get highest number from ALL specs (not just matching short name)
+    # Получить наибольший номер из ВСЕХ спецификаций (не только соответствующих короткому имени)
     $highestSpec = Get-HighestNumberFromSpecs -SpecsDir $SpecsDir
 
-    # Take the maximum of both
+    # Взять максимум из обоих
     $maxNum = [Math]::Max($highestBranch, $highestSpec)
 
-    # Return next number
+    # Вернуть следующий номер
     return $maxNum + 1
 }
 
@@ -131,7 +131,7 @@ function ConvertTo-CleanBranchName {
 }
 $fallbackRoot = (Find-RepositoryRoot -StartDir $PSScriptRoot)
 if (-not $fallbackRoot) {
-    Write-Error "Error: Could not determine repository root. Please run this script from within the repository."
+    Write-Error "Ошибка: Не удалось определить корень репозитория. Пожалуйста, запустите этот скрипт из репозитория."
     exit 1
 }
 
@@ -152,11 +152,11 @@ Set-Location $repoRoot
 $specsDir = Join-Path $repoRoot 'specs'
 New-Item -ItemType Directory -Path $specsDir -Force | Out-Null
 
-# Function to generate branch name with stop word filtering and length filtering
+# Функция для генерации имени ветки с фильтрацией стоп-слов и фильтрацией длины
 function Get-BranchName {
     param([string]$Description)
     
-    # Common stop words to filter out
+    # Общие стоп-слова для фильтрации
     $stopWords = @(
         'i', 'a', 'an', 'the', 'to', 'for', 'of', 'in', 'on', 'at', 'by', 'with', 'from',
         'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
@@ -165,54 +165,54 @@ function Get-BranchName {
         'want', 'need', 'add', 'get', 'set'
     )
     
-    # Convert to lowercase and extract words (alphanumeric only)
+    # Преобразовать в нижний регистр и извлечь слова (только буквенно-цифровые)
     $cleanName = $Description.ToLower() -replace '[^a-z0-9\s]', ' '
     $words = $cleanName -split '\s+' | Where-Object { $_ }
     
-    # Filter words: remove stop words and words shorter than 3 chars (unless they're uppercase acronyms in original)
+    # Отфильтровать слова: удалить стоп-слова и слова короче 3 символов (если они не являются заглавными аббревиатурами в оригинале)
     $meaningfulWords = @()
     foreach ($word in $words) {
-        # Skip stop words
+        # Пропустить стоп-слова
         if ($stopWords -contains $word) { continue }
         
-        # Keep words that are length >= 3 OR appear as uppercase in original (likely acronyms)
+        # Сохранить слова длиной >= 3 ИЛИ появляющиеся заглавными в оригинале (вероятно аббревиатуры)
         if ($word.Length -ge 3) {
             $meaningfulWords += $word
         } elseif ($Description -match "\b$($word.ToUpper())\b") {
-            # Keep short words if they appear as uppercase in original (likely acronyms)
+            # Сохранить короткие слова, если они появляются заглавными в оригинале (вероятно аббревиатуры)
             $meaningfulWords += $word
         }
     }
     
-    # If we have meaningful words, use first 3-4 of them
+    # Если у нас есть значимые слова, использовать первые 3-4 из них
     if ($meaningfulWords.Count -gt 0) {
         $maxWords = if ($meaningfulWords.Count -eq 4) { 4 } else { 3 }
         $result = ($meaningfulWords | Select-Object -First $maxWords) -join '-'
         return $result
     } else {
-        # Fallback to original logic if no meaningful words found
+        # Откатиться к исходной логике, если значимые слова не найдены
         $result = ConvertTo-CleanBranchName -Name $Description
         $fallbackWords = ($result -split '-') | Where-Object { $_ } | Select-Object -First 3
         return [string]::Join('-', $fallbackWords)
     }
 }
 
-# Generate branch name
+# Сгенерировать имя ветки
 if ($ShortName) {
-    # Use provided short name, just clean it up
+    # Использовать предоставленное короткое имя, просто очистить его
     $branchSuffix = ConvertTo-CleanBranchName -Name $ShortName
 } else {
-    # Generate from description with smart filtering
+    # Сгенерировать из описания с умной фильтрацией
     $branchSuffix = Get-BranchName -Description $featureDesc
 }
 
-# Determine branch number
+# Определить номер ветки
 if ($Number -eq 0) {
     if ($hasGit) {
-        # Check existing branches on remotes
+        # Проверить существующие ветки на удаленных репозиториях
         $Number = Get-NextBranchNumber -SpecsDir $specsDir
     } else {
-        # Fall back to local directory check
+        # Откатиться к проверке локальной директории
         $Number = (Get-HighestNumberFromSpecs -SpecsDir $specsDir) + 1
     }
 }
@@ -220,35 +220,35 @@ if ($Number -eq 0) {
 $featureNum = ('{0:000}' -f $Number)
 $branchName = "$featureNum-$branchSuffix"
 
-# GitHub enforces a 244-byte limit on branch names
-# Validate and truncate if necessary
+# GitHub применяет лимит 244 байта на имена веток
+# Валидировать и обрезать при необходимости
 $maxBranchLength = 244
 if ($branchName.Length -gt $maxBranchLength) {
-    # Calculate how much we need to trim from suffix
-    # Account for: feature number (3) + hyphen (1) = 4 chars
+    # Рассчитать, сколько нужно обрезать из суффикса
+    # Учесть: номер функции (3) + дефис (1) = 4 символа
     $maxSuffixLength = $maxBranchLength - 4
     
-    # Truncate suffix
+    # Обрезать суффикс
     $truncatedSuffix = $branchSuffix.Substring(0, [Math]::Min($branchSuffix.Length, $maxSuffixLength))
-    # Remove trailing hyphen if truncation created one
+    # Удалить завершающий дефис, если обрезка создала его
     $truncatedSuffix = $truncatedSuffix -replace '-$', ''
     
     $originalBranchName = $branchName
     $branchName = "$featureNum-$truncatedSuffix"
     
-    Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
-    Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"
-    Write-Warning "[specify] Truncated to: $branchName ($($branchName.Length) bytes)"
+    Write-Warning "[specify] Имя ветки превысило лимит GitHub в 244 байта"
+    Write-Warning "[specify] Исходное: $originalBranchName ($($originalBranchName.Length) байт)"
+    Write-Warning "[specify] Обрезано до: $branchName ($($branchName.Length) байт)"
 }
 
 if ($hasGit) {
     try {
         git checkout -b $branchName | Out-Null
     } catch {
-        Write-Warning "Failed to create git branch: $branchName"
+        Write-Warning "Не удалось создать git ветку: $branchName"
     }
 } else {
-    Write-Warning "[specify] Warning: Git repository not detected; skipped branch creation for $branchName"
+    Write-Warning "[specify] Предупреждение: Git репозиторий не обнаружен; пропущено создание ветки для $branchName"
 }
 
 $featureDir = Join-Path $specsDir $branchName
@@ -262,7 +262,7 @@ if (Test-Path $template) {
     New-Item -ItemType File -Path $specFile | Out-Null 
 }
 
-# Set the SPECIFY_FEATURE environment variable for the current session
+# Установить переменную окружения SPECIFY_FEATURE для текущей сессии
 $env:SPECIFY_FEATURE = $branchName
 
 if ($Json) {
@@ -278,6 +278,6 @@ if ($Json) {
     Write-Output "SPEC_FILE: $specFile"
     Write-Output "FEATURE_NUM: $featureNum"
     Write-Output "HAS_GIT: $hasGit"
-    Write-Output "SPECIFY_FEATURE environment variable set to: $branchName"
+    Write-Output "Переменная окружения SPECIFY_FEATURE установлена в: $branchName"
 }
 

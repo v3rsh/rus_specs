@@ -1,258 +1,258 @@
 ---
-description: Create or update the feature specification from a natural language feature description.
+description: Создать или обновить спецификацию функции из описания функции на естественном языке.
 handoffs: 
-  - label: Build Technical Plan
+  - label: Построить технический план
     agent: speckit.plan
-    prompt: Create a plan for the spec. I am building with...
-  - label: Clarify Spec Requirements
+    prompt: Создать план для спецификации. Я строю с...
+  - label: Уточнить требования спецификации
     agent: speckit.clarify
-    prompt: Clarify specification requirements
+    prompt: Уточнить требования спецификации
     send: true
 ---
 
-## User Input
+## Ввод пользователя
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+Вы **ДОЛЖНЫ** учитывать ввод пользователя перед продолжением (если он не пустой).
 
-## Outline
+## План
 
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+Текст, который пользователь ввел после `/speckit.specify` в сообщении-триггере, **является** описанием функции. Предполагайте, что он всегда доступен в этом разговоре, даже если `$ARGUMENTS` появляется буквально ниже. Не просите пользователя повторить его, если только он не предоставил пустую команду.
 
-Given that feature description, do this:
+Учитывая это описание функции, сделайте следующее:
 
-1. **Generate a concise short name** (2-4 words) for the branch:
-   - Analyze the feature description and extract the most meaningful keywords
-   - Create a 2-4 word short name that captures the essence of the feature
-   - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
-   - Preserve technical terms and acronyms (OAuth2, API, JWT, etc.)
-   - Keep it concise but descriptive enough to understand the feature at a glance
-   - Examples:
-     - "I want to add user authentication" → "user-auth"
-     - "Implement OAuth2 integration for the API" → "oauth2-api-integration"
-     - "Create a dashboard for analytics" → "analytics-dashboard"
-     - "Fix payment processing timeout bug" → "fix-payment-timeout"
+1. **Сгенерируйте краткое короткое имя** (2-4 слова) для ветки:
+   - Проанализируйте описание функции и извлеките наиболее значимые ключевые слова
+   - Создайте короткое имя из 2-4 слов, которое отражает суть функции
+   - Используйте формат действие-существительное, когда возможно (например, "добавить-аутентификацию", "исправить-баг-платежей")
+   - Сохраняйте технические термины и аббревиатуры (OAuth2, API, JWT и т.д.)
+   - Держите его кратким, но достаточно описательным, чтобы понять функцию с первого взгляда
+     - Примеры:
+     - "Хочу добавить аутентификацию пользователей" → "аутентификация-пользователей"
+     - "Реализовать интеграцию OAuth2 для API" → "интеграция-oauth2-api"
+     - "Создать дашборд для аналитики" → "дашборд-аналитики"
+     - "Исправить баг таймаута обработки платежей" → "исправление-таймаута-платежей"
 
-2. **Check for existing branches before creating new one**:
+2. **Проверьте существующие ветки перед созданием новой**:
 
-   a. First, fetch all remote branches to ensure we have the latest information:
+   a. Сначала получите все удаленные ветки, чтобы убедиться, что у нас есть последняя информация:
 
       ```bash
       git fetch --all --prune
       ```
 
-   b. Find the highest feature number across all sources for the short-name:
-      - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
-      - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
-      - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
+   b. Найдите наибольший номер функции во всех источниках для короткого имени:
+      - Удаленные ветки: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
+      - Локальные ветки: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
+      - Директории спецификаций: Проверьте директории, соответствующие `specs/[0-9]+-<short-name>`
 
-   c. Determine the next available number:
-      - Extract all numbers from all three sources
-      - Find the highest number N
-      - Use N+1 for the new branch number
+   c. Определите следующий доступный номер:
+      - Извлеките все номера из всех трех источников
+      - Найдите наибольший номер N
+      - Используйте N+1 для нового номера ветки
 
-   d. Run the script `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS"` with the calculated number and short-name:
-      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
-      - Bash example: `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
-      - PowerShell example: `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS" -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
+   d. Запустите скрипт `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS"` с рассчитанным номером и коротким именем:
+      - Передайте `--number N+1` и `--short-name "ваше-короткое-имя"` вместе с описанием функции
+      - Пример Bash: `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS" --json --number 5 --short-name "аутентификация-пользователей" "Добавить аутентификацию пользователей"`
+      - Пример PowerShell: `.specify/scripts/powershell/create-new-feature.ps1 -Json "$ARGUMENTS" -Json -Number 5 -ShortName "аутентификация-пользователей" "Добавить аутентификацию пользователей"`
 
-   **IMPORTANT**:
-   - Check all three sources (remote branches, local branches, specs directories) to find the highest number
-   - Only match branches/directories with the exact short-name pattern
-   - If no existing branches/directories found with this short-name, start with number 1
-   - You must only ever run this script once per feature
-   - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for
-   - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
+   **ВАЖНО**:
+   - Проверьте все три источника (удаленные ветки, локальные ветки, директории спецификаций), чтобы найти наибольший номер
+   - Сопоставляйте только ветки/директории с точным паттерном короткого имени
+   - Если не найдено существующих веток/директорий с этим коротким именем, начните с номера 1
+   - Вы должны запускать этот скрипт только один раз на функцию
+   - JSON предоставляется в терминале как вывод — всегда ссылайтесь на него, чтобы получить фактическое содержимое, которое вы ищете
+   - JSON вывод будет содержать пути BRANCH_NAME и SPEC_FILE
+   - Для одинарных кавычек в аргументах типа "I'm Groot" используйте синтаксис экранирования: например, 'I'\''m Groot' (или двойные кавычки, если возможно: "I'm Groot")
 
-3. Load `.specify/templates/spec-template.md` to understand required sections.
+3. Загрузите `.specify/templates/spec-template.md`, чтобы понять требуемые разделы.
 
-4. Follow this execution flow:
+4. Следуйте этому потоку выполнения:
 
-    1. Parse user description from Input
-       If empty: ERROR "No feature description provided"
-    2. Extract key concepts from description
-       Identify: actors, actions, data, constraints
-    3. For unclear aspects:
-       - Make informed guesses based on context and industry standards
-       - Only mark with [NEEDS CLARIFICATION: specific question] if:
-         - The choice significantly impacts feature scope or user experience
-         - Multiple reasonable interpretations exist with different implications
-         - No reasonable default exists
-       - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
-       - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
-    4. Fill User Scenarios & Testing section
-       If no clear user flow: ERROR "Cannot determine user scenarios"
-    5. Generate Functional Requirements
-       Each requirement must be testable
-       Use reasonable defaults for unspecified details (document assumptions in Assumptions section)
-    6. Define Success Criteria
-       Create measurable, technology-agnostic outcomes
-       Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
-       Each criterion must be verifiable without implementation details
-    7. Identify Key Entities (if data involved)
-    8. Return: SUCCESS (spec ready for planning)
+   1. Распарсите описание пользователя из Ввода
+      Если пусто: ОШИБКА "Описание функции не предоставлено"
+   2. Извлеките ключевые концепции из описания
+      Определите: акторы, действия, данные, ограничения
+   3. Для неясных аспектов:
+      - Делайте обоснованные предположения на основе контекста и отраслевых стандартов
+      - Помечайте только [ТРЕБУЕТ УТОЧНЕНИЯ: конкретный вопрос], если:
+        - Выбор существенно влияет на область функции или пользовательский опыт
+        - Существуют множественные разумные интерпретации с разными последствиями
+        - Не существует разумного значения по умолчанию
+      - **ЛИМИТ: Максимум 3 маркера [ТРЕБУЕТ УТОЧНЕНИЯ] всего**
+      - Приоритизируйте уточнения по влиянию: область > безопасность/конфиденциальность > пользовательский опыт > технические детали
+   4. Заполните раздел Пользовательские сценарии и тестирование
+      Если нет четкого пользовательского потока: ОШИБКА "Невозможно определить пользовательские сценарии"
+   5. Сгенерируйте Функциональные требования
+      Каждое требование должно быть проверяемым
+      Используйте разумные значения по умолчанию для неуказанных деталей (документируйте предположения в разделе Предположения)
+   6. Определите Критерии успеха
+      Создайте измеримые, технологически-агностичные результаты
+      Включите как количественные метрики (время, производительность, объем), так и качественные меры (удовлетворенность пользователей, завершение задач)
+      Каждый критерий должен быть проверяемым без деталей реализации
+   7. Определите Ключевые сущности (если задействованы данные)
+   8. Верните: УСПЕХ (спецификация готова к планированию)
 
-5. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
+5. Запишите спецификацию в SPEC_FILE, используя структуру шаблона, заменяя плейсхолдеры конкретными деталями, выведенными из описания функции (аргументов), сохраняя порядок разделов и заголовки.
 
-6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
+6. **Валидация качества спецификации**: После написания начальной спецификации валидируйте ее по критериям качества:
 
-   a. **Create Spec Quality Checklist**: Generate a checklist file at `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
+   a. **Создайте чеклист качества спецификации**: Сгенерируйте файл чеклиста в `FEATURE_DIR/checklists/requirements.md`, используя структуру шаблона чеклиста с этими элементами валидации:
 
       ```markdown
-      # Specification Quality Checklist: [FEATURE NAME]
+      # Чеклист качества спецификации: [ИМЯ ФУНКЦИИ]
       
-      **Purpose**: Validate specification completeness and quality before proceeding to planning
-      **Created**: [DATE]
-      **Feature**: [Link to spec.md]
+      **Назначение**: Валидировать полноту и качество спецификации перед переходом к планированию
+      **Создан**: [ДАТА]
+      **Функция**: [Ссылка на spec.md]
       
-      ## Content Quality
+      ## Качество содержимого
       
-      - [ ] No implementation details (languages, frameworks, APIs)
-      - [ ] Focused on user value and business needs
-      - [ ] Written for non-technical stakeholders
-      - [ ] All mandatory sections completed
+      - [ ] Нет деталей реализации (языки, фреймворки, API)
+      - [ ] Сфокусировано на ценности для пользователя и бизнес-потребностях
+      - [ ] Написано для нетехнических стейкхолдеров
+      - [ ] Все обязательные разделы завершены
       
-      ## Requirement Completeness
+      ## Полнота требований
       
-      - [ ] No [NEEDS CLARIFICATION] markers remain
-      - [ ] Requirements are testable and unambiguous
-      - [ ] Success criteria are measurable
-      - [ ] Success criteria are technology-agnostic (no implementation details)
-      - [ ] All acceptance scenarios are defined
-      - [ ] Edge cases are identified
-      - [ ] Scope is clearly bounded
-      - [ ] Dependencies and assumptions identified
+      - [ ] Не осталось маркеров [ТРЕБУЕТ УТОЧНЕНИЯ]
+      - [ ] Требования проверяемы и однозначны
+      - [ ] Критерии успеха измеримы
+      - [ ] Критерии успеха технологически-агностичны (нет деталей реализации)
+      - [ ] Все сценарии приемки определены
+      - [ ] Граничные случаи идентифицированы
+      - [ ] Область четко ограничена
+      - [ ] Зависимости и предположения идентифицированы
       
-      ## Feature Readiness
+      ## Готовность функции
       
-      - [ ] All functional requirements have clear acceptance criteria
-      - [ ] User scenarios cover primary flows
-      - [ ] Feature meets measurable outcomes defined in Success Criteria
-      - [ ] No implementation details leak into specification
+      - [ ] Все функциональные требования имеют четкие критерии приемки
+      - [ ] Пользовательские сценарии охватывают основные потоки
+      - [ ] Функция соответствует измеримым результатам, определенным в Критериях успеха
+      - [ ] Детали реализации не просачиваются в спецификацию
       
-      ## Notes
+      ## Примечания
       
-      - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+      - Элементы, помеченные как незавершенные, требуют обновления спецификации перед `/speckit.clarify` или `/speckit.plan`
       ```
 
-   b. **Run Validation Check**: Review the spec against each checklist item:
-      - For each item, determine if it passes or fails
-      - Document specific issues found (quote relevant spec sections)
+   b. **Запустите проверку валидации**: Просмотрите спецификацию по каждому элементу чеклиста:
+      - Для каждого элемента определите, проходит он или не проходит
+      - Документируйте конкретные найденные проблемы (цитируйте соответствующие разделы спецификации)
 
-   c. **Handle Validation Results**:
+   c. **Обработайте результаты валидации**:
 
-      - **If all items pass**: Mark checklist complete and proceed to step 6
+      - **Если все элементы проходят**: Отметьте чеклист завершенным и переходите к шагу 6
 
-      - **If items fail (excluding [NEEDS CLARIFICATION])**:
-        1. List the failing items and specific issues
-        2. Update the spec to address each issue
-        3. Re-run validation until all items pass (max 3 iterations)
-        4. If still failing after 3 iterations, document remaining issues in checklist notes and warn user
+      - **Если элементы не проходят (исключая [ТРЕБУЕТ УТОЧНЕНИЯ])**:
+        1. Перечислите неудачные элементы и конкретные проблемы
+        2. Обновите спецификацию для решения каждой проблемы
+        3. Перезапустите валидацию, пока все элементы не пройдут (максимум 3 итерации)
+        4. Если все еще не проходит после 3 итераций, документируйте оставшиеся проблемы в примечаниях чеклиста и предупредите пользователя
 
-      - **If [NEEDS CLARIFICATION] markers remain**:
-        1. Extract all [NEEDS CLARIFICATION: ...] markers from the spec
-        2. **LIMIT CHECK**: If more than 3 markers exist, keep only the 3 most critical (by scope/security/UX impact) and make informed guesses for the rest
-        3. For each clarification needed (max 3), present options to user in this format:
+      - **Если остаются маркеры [ТРЕБУЕТ УТОЧНЕНИЯ]**:
+        1. Извлеките все маркеры [ТРЕБУЕТ УТОЧНЕНИЯ: ...] из спецификации
+        2. **ПРОВЕРКА ЛИМИТА**: Если существует более 3 маркеров, оставьте только 3 наиболее критических (по влиянию области/безопасности/UX) и сделайте обоснованные предположения для остальных
+        3. Для каждого необходимого уточнения (максимум 3) представьте опции пользователю в этом формате:
 
            ```markdown
-           ## Question [N]: [Topic]
+           ## Вопрос [N]: [Тема]
            
-           **Context**: [Quote relevant spec section]
+           **Контекст**: [Цитировать соответствующий раздел спецификации]
            
-           **What we need to know**: [Specific question from NEEDS CLARIFICATION marker]
+           **Что нам нужно знать**: [Конкретный вопрос из маркера ТРЕБУЕТ УТОЧНЕНИЯ]
            
-           **Suggested Answers**:
+           **Предложенные ответы**:
            
-           | Option | Answer | Implications |
-           |--------|--------|--------------|
-           | A      | [First suggested answer] | [What this means for the feature] |
-           | B      | [Second suggested answer] | [What this means for the feature] |
-           | C      | [Third suggested answer] | [What this means for the feature] |
-           | Custom | Provide your own answer | [Explain how to provide custom input] |
+           | Опция | Ответ | Последствия |
+           |-------|-------|-------------|
+           | A     | [Первый предложенный ответ] | [Что это означает для функции] |
+           | B     | [Второй предложенный ответ] | [Что это означает для функции] |
+           | C     | [Третий предложенный ответ] | [Что это означает для функции] |
+           | Свой  | Предоставьте свой ответ | [Объяснить, как предоставить свой ввод] |
            
-           **Your choice**: _[Wait for user response]_
+           **Ваш выбор**: _[Ожидание ответа пользователя]_
            ```
 
-        4. **CRITICAL - Table Formatting**: Ensure markdown tables are properly formatted:
-           - Use consistent spacing with pipes aligned
-           - Each cell should have spaces around content: `| Content |` not `|Content|`
-           - Header separator must have at least 3 dashes: `|--------|`
-           - Test that the table renders correctly in markdown preview
-        5. Number questions sequentially (Q1, Q2, Q3 - max 3 total)
-        6. Present all questions together before waiting for responses
-        7. Wait for user to respond with their choices for all questions (e.g., "Q1: A, Q2: Custom - [details], Q3: B")
-        8. Update the spec by replacing each [NEEDS CLARIFICATION] marker with the user's selected or provided answer
-        9. Re-run validation after all clarifications are resolved
+        4. **КРИТИЧНО — Форматирование таблицы**: Убедитесь, что таблицы markdown правильно отформатированы:
+           - Используйте согласованные пробелы с выровненными трубами
+           - Каждая ячейка должна иметь пробелы вокруг содержимого: `| Content |`, а не `|Content|`
+           - Разделитель заголовка должен иметь минимум 3 тире: `|--------|`
+           - Проверьте, что таблица правильно отображается в предпросмотре markdown
+        5. Нумеруйте вопросы последовательно (Q1, Q2, Q3 — максимум 3 всего)
+        6. Представьте все вопросы вместе перед ожиданием ответов
+        7. Дождитесь ответа пользователя с их выбором для всех вопросов (например, "Q1: A, Q2: Custom - [details], Q3: B")
+        8. Обновите спецификацию, заменив каждый маркер [ТРЕБУЕТ УТОЧНЕНИЯ] выбранным или предоставленным ответом пользователя
+        9. Перезапустите валидацию после разрешения всех уточнений
 
-   d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
+   d. **Обновите чеклист**: После каждой итерации валидации обновите файл чеклиста текущим статусом прохождения/непрохождения
 
-7. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
+7. Отчитайтесь о завершении с именем ветки, путем к файлу спецификации, результатами чеклиста и готовностью к следующей фазе (`/speckit.clarify` или `/speckit.plan`).
 
-**NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
+**ПРИМЕЧАНИЕ:** Скрипт создает и переключается на новую ветку и инициализирует файл спецификации перед записью.
 
-## General Guidelines
+## Общие руководящие принципы
 
-## Quick Guidelines
+## Краткие руководящие принципы
 
-- Focus on **WHAT** users need and **WHY**.
-- Avoid HOW to implement (no tech stack, APIs, code structure).
-- Written for business stakeholders, not developers.
-- DO NOT create any checklists that are embedded in the spec. That will be a separate command.
+- Фокус на **ЧТО** нужно пользователям и **ПОЧЕМУ**.
+- Избегайте КАК реализовать (без технологического стека, API, структуры кода).
+- Написано для бизнес-стейкхолдеров, а не разработчиков.
+- НЕ создавайте никаких чеклистов, встроенных в спецификацию. Это будет отдельная команда.
 
-### Section Requirements
+### Требования к разделам
 
-- **Mandatory sections**: Must be completed for every feature
-- **Optional sections**: Include only when relevant to the feature
-- When a section doesn't apply, remove it entirely (don't leave as "N/A")
+- **Обязательные разделы**: Должны быть завершены для каждой функции
+- **Опциональные разделы**: Включайте только когда релевантны функции
+- Когда раздел не применим, удалите его полностью (не оставляйте как "N/A")
 
-### For AI Generation
+### Для генерации AI
 
-When creating this spec from a user prompt:
+При создании этой спецификации из промпта пользователя:
 
-1. **Make informed guesses**: Use context, industry standards, and common patterns to fill gaps
-2. **Document assumptions**: Record reasonable defaults in the Assumptions section
-3. **Limit clarifications**: Maximum 3 [NEEDS CLARIFICATION] markers - use only for critical decisions that:
-   - Significantly impact feature scope or user experience
-   - Have multiple reasonable interpretations with different implications
-   - Lack any reasonable default
-4. **Prioritize clarifications**: scope > security/privacy > user experience > technical details
-5. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
-6. **Common areas needing clarification** (only if no reasonable default exists):
-   - Feature scope and boundaries (include/exclude specific use cases)
-   - User types and permissions (if multiple conflicting interpretations possible)
-   - Security/compliance requirements (when legally/financially significant)
+1. **Делайте обоснованные предположения**: Используйте контекст, отраслевые стандарты и общие паттерны для заполнения пробелов
+2. **Документируйте предположения**: Записывайте разумные значения по умолчанию в разделе Предположения
+3. **Ограничьте уточнения**: Максимум 3 маркера [ТРЕБУЕТ УТОЧНЕНИЯ] — используйте только для критических решений, которые:
+   - Существенно влияют на область функции или пользовательский опыт
+   - Имеют множественные разумные интерпретации с разными последствиями
+   - Не имеют разумного значения по умолчанию
+4. **Приоритизируйте уточнения**: область > безопасность/конфиденциальность > пользовательский опыт > технические детали
+5. **Думайте как тестировщик**: Каждое расплывчатое требование должно не пройти элемент чеклиста "проверяемое и однозначное"
+6. **Общие области, требующие уточнения** (только если не существует разумного значения по умолчанию):
+   - Область функции и границы (включить/исключить конкретные случаи использования)
+   - Типы пользователей и разрешения (если возможны множественные конфликтующие интерпретации)
+   - Требования безопасности/соответствия (когда юридически/финансово значимы)
 
-**Examples of reasonable defaults** (don't ask about these):
+**Примеры разумных значений по умолчанию** (не спрашивайте об этих):
 
-- Data retention: Industry-standard practices for the domain
-- Performance targets: Standard web/mobile app expectations unless specified
-- Error handling: User-friendly messages with appropriate fallbacks
-- Authentication method: Standard session-based or OAuth2 for web apps
-- Integration patterns: RESTful APIs unless specified otherwise
+- Хранение данных: Отраслевые стандартные практики для домена
+- Цели производительности: Стандартные ожидания веб/мобильных приложений, если не указано
+- Обработка ошибок: Пользовательские сообщения с соответствующими запасными вариантами
+- Метод аутентификации: Стандартный сеансовый или OAuth2 для веб-приложений
+- Паттерны интеграции: RESTful API, если не указано иное
 
-### Success Criteria Guidelines
+### Руководящие принципы критериев успеха
 
-Success criteria must be:
+Критерии успеха должны быть:
 
-1. **Measurable**: Include specific metrics (time, percentage, count, rate)
-2. **Technology-agnostic**: No mention of frameworks, languages, databases, or tools
-3. **User-focused**: Describe outcomes from user/business perspective, not system internals
-4. **Verifiable**: Can be tested/validated without knowing implementation details
+1. **Измеримыми**: Включайте конкретные метрики (время, процент, количество, скорость)
+2. **Технологически-агностичными**: Без упоминания фреймворков, языков, баз данных или инструментов
+3. **Ориентированными на пользователя**: Описывайте результаты с точки зрения пользователя/бизнеса, а не внутренностей системы
+4. **Проверяемыми**: Можно протестировать/валидировать без знания деталей реализации
 
-**Good examples**:
+**Хорошие примеры**:
 
-- "Users can complete checkout in under 3 minutes"
-- "System supports 10,000 concurrent users"
-- "95% of searches return results in under 1 second"
-- "Task completion rate improves by 40%"
+- "Пользователи могут завершить оформление заказа менее чем за 3 минуты"
+- "Система поддерживает 10,000 одновременных пользователей"
+- "95% поисков возвращают результаты менее чем за 1 секунду"
+- "Скорость завершения задач улучшается на 40%"
 
-**Bad examples** (implementation-focused):
+**Плохие примеры** (ориентированные на реализацию):
 
-- "API response time is under 200ms" (too technical, use "Users see results instantly")
-- "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
-- "React components render efficiently" (framework-specific)
-- "Redis cache hit rate above 80%" (technology-specific)
+- "Время отклика API менее 200 мс" (слишком технично, используйте "Пользователи видят результаты мгновенно")
+- "База данных может обрабатывать 1000 транзакций в секунду" (деталь реализации, используйте метрику, ориентированную на пользователя)
+- "Компоненты React рендерятся эффективно" (специфично для фреймворка)
+- "Процент попаданий кэша Redis выше 80%" (специфично для технологии)

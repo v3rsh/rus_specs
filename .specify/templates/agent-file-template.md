@@ -1,28 +1,28 @@
-# [PROJECT NAME] Development Guidelines
+# [ИМЯ ПРОЕКТА] Руководство по разработке
 
-Auto-generated from all feature plans. Last updated: [DATE]
+Автоматически сгенерировано из всех планов функций. Последнее обновление: [ДАТА]
 
-## Active Technologies
+## Активные технологии
 
-[EXTRACTED FROM ALL PLAN.MD FILES]
+[ИЗВЛЕЧЕНО ИЗ ВСЕХ ФАЙЛОВ PLAN.MD]
 
-## Project Structure
+## Структура проекта
 
 ```text
-[ACTUAL STRUCTURE FROM PLANS]
+[РЕАЛЬНАЯ СТРУКТУРА ИЗ ПЛАНОВ]
 ```
 
-## Commands
+## Команды
 
-[ONLY COMMANDS FOR ACTIVE TECHNOLOGIES]
+[ТОЛЬКО КОМАНДЫ ДЛЯ АКТИВНЫХ ТЕХНОЛОГИЙ]
 
-## Code Style
+## Стиль кода
 
-[LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE]
+[СПЕЦИФИЧНО ДЛЯ ЯЗЫКА, ТОЛЬКО ДЛЯ ИСПОЛЬЗУЕМЫХ ЯЗЫКОВ]
 
-## Recent Changes
+## Недавние изменения
 
-[LAST 3 FEATURES AND WHAT THEY ADDED]
+[ПОСЛЕДНИЕ 3 ФУНКЦИИ И ЧТО ОНИ ДОБАВИЛИ]
 
-<!-- MANUAL ADDITIONS START -->
-<!-- MANUAL ADDITIONS END -->
+<!-- РУЧНЫЕ ДОБАВЛЕНИЯ НАЧАЛО -->
+<!-- РУЧНЫЕ ДОБАВЛЕНИЯ КОНЕЦ -->
